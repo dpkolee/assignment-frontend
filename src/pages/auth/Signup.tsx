@@ -55,6 +55,14 @@ export function Signup() {
     },
     {
       onSuccess: () => {
+        notifications.show({
+          id: "signup-success",
+          color: "green",
+          icon: <Icon icon="fluent:checkmark-24-filled" />,
+          title: "Success",
+          message:
+            "Verification link has been sent to your email. Check your email to continue",
+        });
         navigate("/login");
       },
       onError: (error: AxiosError) => {
@@ -150,7 +158,15 @@ export function Signup() {
               mt="md"
               {...form.getInputProps("password")}
             />
-            <Button fullWidth mt="xl" color="violet" type="submit">
+            <Button
+              fullWidth
+              mt="xl"
+              color="violet"
+              type="submit"
+              leftIcon={
+                <Icon icon="ant-design:user-add-outlined" fontSize={20} />
+              }
+            >
               Signup
             </Button>
           </Paper>

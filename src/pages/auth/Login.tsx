@@ -47,12 +47,19 @@ export function Login() {
     },
     {
       onSuccess: (response) => {
-        const { access, refresh, user } = response?.data;
+        const { access, refresh, user, subscribed } = response?.data;
         helperUtils.setAuthorizationToken(access);
         helperUtils.setRefreshToken(refresh);
         helperUtils.setUser(user);
-        if (Boolean(localStorage.getItem("is_subscribed"))) {
+        if (Boolean(subscribed)) {
           navigate("/");
+          notifications.show({
+            id: "login-success",
+            color: "green",
+            icon: <Icon icon="fluent:checkmark-24-filled" />,
+            title: "Success",
+            message: "Successfully logged In",
+          });
         } else {
           navigate("/subscription", { replace: true });
         }
@@ -145,6 +152,9 @@ export function Login() {
               variant="filled"
               color="violet"
               type="submit"
+              leftIcon={
+                <Icon icon="ant-design:unlock-outlined" fontSize={20} />
+              }
             >
               Login
             </Button>

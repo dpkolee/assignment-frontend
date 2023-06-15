@@ -16,7 +16,6 @@ function App() {
           const originalConfig = err.config;
           if (err?.response?.status === 401) {
             try {
-              console.log("originalConfig", originalConfig);
               const response = await api.post("/auth/refresh/", {
                 refresh: helperUtils.getRefreshToken(),
               });

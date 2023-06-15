@@ -16,45 +16,81 @@ import {
   useMantineTheme,
   Radio,
 } from "@mantine/core";
-// import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-// import api from "../../utils/api-interceptor";
 import { useState } from "react";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import api from "../../utils/api-interceptor";
+import CardSkeleton from "../../components/CardSkeleton";
+import { AxiosError } from "axios";
 
-type Props = {};
+type SubscriptionListType = {
+  id: number;
+  name: string;
+  price: string;
+  plan: string;
+};
 
-const SubscriptionList = (props: Props) => {
+type FormDataProps = { subscription_plan: number | undefined };
+
+const SubscriptionList = () => {
   const navigate = useNavigate();
   const theme = useMantineTheme();
   const [payment, setPayment] = useState("visa");
-  const [selectedPlan, setSelectedPlan] = useState<{
-    name: string;
-    price: string;
-    plan: string;
-  }>();
+  const [selectedPlan, setSelectedPlan] = useState<SubscriptionListType>();
   const [opened, { open, close }] = useDisclosure(false);
-  //   const {
-  //     isLoading,
-  //     data: subscriptionList,
-  //     isError,
-  //     refetch,
-  //   } = useQuery(["subscription-list"], () => {
-  //     const response = api.get(`/subscription/type/`);
-  //     return response;
-  //   });
+
+  const { isLoading, data: subscriptionList } = useQuery(
+    ["subscription-list"],
+    () => {
+      const response = api.get(`/subscription/type/`);
+      return response;
+    }
+  );
+
+  //subscription action mutation
+  const subscriptionMutation = useMutation(
+    (data: FormDataProps) => {
+      return api.post("/subscription/user/", data);
+    },
+    {
+      onSuccess: () => {
+        navigate("/");
+        notifications.show({
+          id: "subscription-success",
+          color: "green",
+          icon: <Icon icon="fluent:checkmark-24-filled" />,
+          title: "Success",
+          message: "You have been subscribed successfully",
+        });
+      },
+      onError: (error: AxiosError) => {
+        const { detail } = error.response?.data as { detail: string };
+        if (detail) {
+          notifications.show({
+            id: detail,
+            color: "red",
+            icon: <Icon icon="fluent:dismiss-24-filled" />,
+            title: "ERROR",
+            message: detail,
+          });
+        } else {
+          notifications.show({
+            id: "Server Error",
+            color: "red",
+            icon: <Icon icon="fluent:dismiss-24-filled" />,
+            title: "Something Went Wrong !",
+            message:
+              "There seems to be something wrong with the server, Please try again later",
+          });
+        }
+      },
+    }
+  );
 
   const handlePayment = () => {
-    notifications.show({
-      id: "payment-success",
-      color: "green",
-      icon: <Icon icon="fluent:dismiss-24-filled" />,
-      title: "Success",
-      message: "Payment successful",
-    });
-    localStorage.setItem("is_subscribed", true as unknown as string);
-    navigate("/");
+    subscriptionMutation.mutate({ subscription_plan: selectedPlan?.id });
   };
 
   return (
@@ -162,7 +198,11 @@ const SubscriptionList = (props: Props) => {
               width: "100%",
             }}
           >
-            <Button color="violet" onClick={handlePayment}>
+            <Button
+              color="violet"
+              onClick={handlePayment}
+              loading={subscriptionMutation.isLoading}
+            >
               Proceed to payment
             </Button>
           </Group>
@@ -187,196 +227,150 @@ const SubscriptionList = (props: Props) => {
             Available Subscription Plans
           </Title>
           <SimpleGrid cols={3}>
-            <Paper maw={300} miw={300} withBorder p={10} radius="md">
-              <Stack spacing={30}>
-                <Tabs defaultValue="basic" color="violet">
-                  <Tabs.List grow>
-                    <Tabs.Tab value="basic">Basic</Tabs.Tab>
-                  </Tabs.List>
-                </Tabs>
-                <Group spacing={0} position="center" align="baseline">
-                  <Text size={30} fw={600}>
-                    $50
-                  </Text>
-                  <Text color="dimmed" size="md">
-                    /month
-                  </Text>
-                </Group>
-                <List
-                  spacing="md"
-                  mx={10}
-                  size="sm"
-                  center
-                  icon={
-                    <ThemeIcon color="teal" size={20} radius="xl">
-                      <Icon icon="fluent:checkmark-24-filled" />
-                    </ThemeIcon>
-                  }
+            {isLoading && <CardSkeleton count={3} />}
+            {subscriptionList?.data?.map(
+              (subscription: SubscriptionListType) => (
+                <Paper
+                  key={subscription.id}
+                  maw={300}
+                  miw={300}
+                  withBorder
+                  p={10}
+                  radius="md"
                 >
-                  <List.Item>Early Access to New Releases.</List.Item>
-                  <List.Item
-                    icon={
-                      <ThemeIcon color="red" size={20} radius="xl">
-                        <Icon icon="ic:round-close" />
-                      </ThemeIcon>
-                    }
-                  >
-                    Discounted Game Purchases
-                  </List.Item>
-                  <List.Item>Online Multiplayer Access</List.Item>
-                  <List.Item
-                    icon={
-                      <ThemeIcon color="red" size={20} radius="xl">
-                        <Icon icon="ic:round-close" />
-                      </ThemeIcon>
-                    }
-                  >
-                    Cloud Save and Cross-Platform Progression
-                  </List.Item>
-                  <List.Item
-                    icon={
-                      <ThemeIcon color="red" size={20} radius="xl">
-                        <Icon icon="ic:round-close" />
-                      </ThemeIcon>
-                    }
-                  >
-                    Exclusive In-Game Content
-                  </List.Item>
-                  <List.Item
-                    icon={
-                      <ThemeIcon color="red" size={20} radius="xl">
-                        <Icon icon="ic:round-close" />
-                      </ThemeIcon>
-                    }
-                  >
-                    Game Recommendations and Personalization
-                  </List.Item>
-                </List>
-                <Button
-                  color="violet"
-                  onClick={() => {
-                    setSelectedPlan({
-                      name: "Basic",
-                      price: "$50",
-                      plan: "/monthly",
-                    });
-                    open();
-                  }}
-                >
-                  Get Started
-                </Button>
-              </Stack>
-            </Paper>
-            <Paper maw={300} miw={300} withBorder p={10} radius="md">
-              <Stack spacing={30}>
-                <Tabs defaultValue="standard" color="violet">
-                  <Tabs.List grow>
-                    <Tabs.Tab value="standard">Standard</Tabs.Tab>
-                  </Tabs.List>
-                </Tabs>
-                <Group spacing={0} position="center" align="baseline">
-                  <Text size={30} fw={600}>
-                    $500
-                  </Text>
-                  <Text color="dimmed" size="md">
-                    /half yearly
-                  </Text>
-                </Group>
-                <List
-                  spacing="md"
-                  mx={10}
-                  size="sm"
-                  center
-                  icon={
-                    <ThemeIcon color="teal" size={20} radius="xl">
-                      <Icon icon="fluent:checkmark-24-filled" />
-                    </ThemeIcon>
-                  }
-                >
-                  <List.Item>Early Access to New Releases.</List.Item>
-                  <List.Item>Discounted Game Purchases</List.Item>
-                  <List.Item>Online Multiplayer Access</List.Item>
-                  <List.Item
-                    icon={
-                      <ThemeIcon color="red" size={20} radius="xl">
-                        <Icon icon="ic:round-close" />
-                      </ThemeIcon>
-                    }
-                  >
-                    Cloud Save and Cross-Platform Progression
-                  </List.Item>
-                  <List.Item>Exclusive In-Game Content</List.Item>
-                  <List.Item>
-                    Game Recommendations and Personalization
-                  </List.Item>
-                </List>
-                <Button
-                  color="violet"
-                  onClick={() => {
-                    setSelectedPlan({
-                      name: "Standard",
-                      price: "$500",
-                      plan: "/half yearly",
-                    });
-                    open();
-                  }}
-                >
-                  Get Started
-                </Button>
-              </Stack>
-            </Paper>
-            <Paper maw={300} miw={300} withBorder p={10} radius="md">
-              <Stack spacing={30}>
-                <Tabs defaultValue="elite" color="violet">
-                  <Tabs.List grow>
-                    <Tabs.Tab value="elite">Elite</Tabs.Tab>
-                  </Tabs.List>
-                </Tabs>
-                <Group spacing={0} position="center" align="baseline">
-                  <Text size={30} fw={600}>
-                    $1000
-                  </Text>
-                  <Text color="dimmed" size="md">
-                    /yearly
-                  </Text>
-                </Group>
-                <List
-                  spacing="md"
-                  mx={10}
-                  size="sm"
-                  center
-                  icon={
-                    <ThemeIcon color="teal" size={20} radius="xl">
-                      <Icon icon="fluent:checkmark-24-filled" />
-                    </ThemeIcon>
-                  }
-                >
-                  <List.Item>Early Access to New Releases.</List.Item>
-                  <List.Item>Discounted Game Purchases</List.Item>
-                  <List.Item>Online Multiplayer Access</List.Item>
-                  <List.Item>
-                    Cloud Save and Cross-Platform Progression
-                  </List.Item>
-                  <List.Item>Exclusive In-Game Content</List.Item>
-                  <List.Item>
-                    Game Recommendations and Personalization
-                  </List.Item>
-                </List>
-                <Button
-                  color="violet"
-                  onClick={() => {
-                    setSelectedPlan({
-                      name: "Elite",
-                      price: "$1000",
-                      plan: "/yearly",
-                    });
-                    open();
-                  }}
-                >
-                  Get Started
-                </Button>
-              </Stack>
-            </Paper>
+                  <Stack spacing={30}>
+                    <Tabs defaultValue="basic" color="violet">
+                      <Tabs.List grow>
+                        <Tabs.Tab value="basic">{subscription.name}</Tabs.Tab>
+                      </Tabs.List>
+                    </Tabs>
+                    <Group spacing={0} position="center" align="baseline">
+                      <Text size={30} fw={600}>
+                        ${subscription.price}
+                      </Text>
+                      <Text color="dimmed" size="md">
+                        /{subscription.plan}
+                      </Text>
+                    </Group>
+                    {subscription.name === "Basic" && (
+                      <List
+                        spacing="md"
+                        mx={10}
+                        size="sm"
+                        center
+                        icon={
+                          <ThemeIcon color="teal" size={20} radius="xl">
+                            <Icon icon="fluent:checkmark-24-filled" />
+                          </ThemeIcon>
+                        }
+                      >
+                        <List.Item>Early Access to New Releases.</List.Item>
+                        <List.Item
+                          icon={
+                            <ThemeIcon color="red" size={20} radius="xl">
+                              <Icon icon="ic:round-close" />
+                            </ThemeIcon>
+                          }
+                        >
+                          Discounted Game Purchases
+                        </List.Item>
+                        <List.Item>Online Multiplayer Access</List.Item>
+                        <List.Item
+                          icon={
+                            <ThemeIcon color="red" size={20} radius="xl">
+                              <Icon icon="ic:round-close" />
+                            </ThemeIcon>
+                          }
+                        >
+                          Cloud Save and Cross-Platform Progression
+                        </List.Item>
+                        <List.Item
+                          icon={
+                            <ThemeIcon color="red" size={20} radius="xl">
+                              <Icon icon="ic:round-close" />
+                            </ThemeIcon>
+                          }
+                        >
+                          Exclusive In-Game Content
+                        </List.Item>
+                        <List.Item
+                          icon={
+                            <ThemeIcon color="red" size={20} radius="xl">
+                              <Icon icon="ic:round-close" />
+                            </ThemeIcon>
+                          }
+                        >
+                          Game Recommendations and Personalization
+                        </List.Item>
+                      </List>
+                    )}
+                    {subscription?.name === "Standard" && (
+                      <List
+                        spacing="md"
+                        mx={10}
+                        size="sm"
+                        center
+                        icon={
+                          <ThemeIcon color="teal" size={20} radius="xl">
+                            <Icon icon="fluent:checkmark-24-filled" />
+                          </ThemeIcon>
+                        }
+                      >
+                        <List.Item>Early Access to New Releases.</List.Item>
+                        <List.Item>Discounted Game Purchases</List.Item>
+                        <List.Item>Online Multiplayer Access</List.Item>
+                        <List.Item
+                          icon={
+                            <ThemeIcon color="red" size={20} radius="xl">
+                              <Icon icon="ic:round-close" />
+                            </ThemeIcon>
+                          }
+                        >
+                          Cloud Save and Cross-Platform Progression
+                        </List.Item>
+                        <List.Item>Exclusive In-Game Content</List.Item>
+                        <List.Item>
+                          Game Recommendations and Personalization
+                        </List.Item>
+                      </List>
+                    )}
+                    {subscription?.name === "Elite" && (
+                      <List
+                        spacing="md"
+                        mx={10}
+                        size="sm"
+                        center
+                        icon={
+                          <ThemeIcon color="teal" size={20} radius="xl">
+                            <Icon icon="fluent:checkmark-24-filled" />
+                          </ThemeIcon>
+                        }
+                      >
+                        <List.Item>Early Access to New Releases.</List.Item>
+                        <List.Item>Discounted Game Purchases</List.Item>
+                        <List.Item>Online Multiplayer Access</List.Item>
+                        <List.Item>
+                          Cloud Save and Cross-Platform Progression
+                        </List.Item>
+                        <List.Item>Exclusive In-Game Content</List.Item>
+                        <List.Item>
+                          Game Recommendations and Personalization
+                        </List.Item>
+                      </List>
+                    )}
+                    <Button
+                      color="violet"
+                      onClick={() => {
+                        setSelectedPlan(subscription);
+                        open();
+                      }}
+                    >
+                      Get Started
+                    </Button>
+                  </Stack>
+                </Paper>
+              )
+            )}
           </SimpleGrid>
         </Stack>
       </Box>
