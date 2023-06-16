@@ -1,5 +1,12 @@
 import { Icon } from "@iconify/react/dist/iconify.js";
-import { Box, Divider, Group, ScrollArea, Stack, Title } from "@mantine/core";
+import {
+  Box,
+  Divider,
+  Grid,
+  Group,
+  Stack,
+  Title,
+} from "@mantine/core";
 import CardSkeleton from "../../components/CardSkeleton";
 import { useQuery } from "@tanstack/react-query";
 import api from "../../utils/api-interceptor";
@@ -45,27 +52,33 @@ export function HomePage() {
             <Title order={4}>GAMES</Title>
           </Group>
           <Divider />
-          <ScrollArea h={"100%"} offsetScrollbars scrollbarSize={10}>
-            <Group noWrap position="center">
-              {isGameListLoading && <CardSkeleton count={5} />}
+          {isGameListLoading && <CardSkeleton count={4} />}
+          {gameList?.data?.results?.length > 0 && (
+            <Grid justify="flex-end">
               {gameList?.data?.results?.map((val: GameListResponseType) => (
-                <Games val={val} />
+                <Grid.Col
+                  lg={3}
+                  md={6}
+                  sm={12}
+                  xs={12}
+                  key={val.id}
+                  sx={{ display: "flex", justifyContent: "center" }}
+                >
+                  <Games val={val} />
+                </Grid.Col>
               ))}
-              {isGameListError ? (
-                <ServerError
-                  reload={gameListRefetch}
-                  src="/no_data_error.svg"
-                />
-              ) : (
-                <NoData
-                  data={gameList?.data}
-                  src="/no_data.svg"
-                  title={"Game list is empty"}
-                  description={"Data will be added soon keep visiting"}
-                />
-              )}
-            </Group>
-          </ScrollArea>
+            </Grid>
+          )}
+          {isGameListError ? (
+            <ServerError reload={gameListRefetch} src="/no_data_error.svg" />
+          ) : (
+            <NoData
+              data={gameList?.data}
+              src="/no_data.svg"
+              title={"Game list is empty"}
+              description={"Data will be added soon keep visiting"}
+            />
+          )}
         </Stack>
         <Stack>
           <Group align="center" position="right" spacing={10}>
@@ -73,27 +86,33 @@ export function HomePage() {
             <Title order={4}>PRODUCT LIST</Title>
           </Group>
           <Divider />
-          <ScrollArea h={"100%"} offsetScrollbars scrollbarSize={10}>
-            <Group noWrap position="center">
-              {isProductListLoading && <CardSkeleton count={5} />}
+          {isProductListLoading && <CardSkeleton count={5} />}
+          {productList?.data?.results?.length > 0 && (
+            <Grid justify="flex-end">
               {productList?.data?.results?.map((val: GameListResponseType) => (
-                <Products val={val} />
+                <Grid.Col
+                  lg={3}
+                  md={6}
+                  sm={12}
+                  xs={12}
+                  key={val.id}
+                  sx={{ display: "flex", justifyContent: "center" }}
+                >
+                  <Products val={val} />
+                </Grid.Col>
               ))}
-              {isProductListError ? (
-                <ServerError
-                  reload={productListRefetch}
-                  src="/no_data_error.svg"
-                />
-              ) : (
-                <NoData
-                  data={productList?.data}
-                  src="/no_data.svg"
-                  title={"Product list is empty"}
-                  description={"Data will be added soon keep visiting"}
-                />
-              )}
-            </Group>
-          </ScrollArea>
+            </Grid>
+          )}
+          {isProductListError ? (
+            <ServerError reload={productListRefetch} src="/no_data_error.svg" />
+          ) : (
+            <NoData
+              data={productList?.data}
+              src="/no_data.svg"
+              title={"Product list is empty"}
+              description={"Data will be added soon keep visiting"}
+            />
+          )}
         </Stack>
       </Stack>
     </Box>

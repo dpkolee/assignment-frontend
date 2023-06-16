@@ -9,7 +9,7 @@ const Chat = () => {
       <Container size={"md"} p={0} w={"100%"}>
         <Group spacing={5} p={10}>
           <Icon icon="raphael:users" fontSize={20} />
-          <Title order={4}>Friends</Title>
+          <Title order={4}>Gamers list</Title>
         </Group>
         <Divider mb={10} />
       </Container>

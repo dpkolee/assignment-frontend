@@ -7,7 +7,7 @@ import LoginButton from "../../components/LoginButton";
 
 export default function AsideWrapper(): ReactElement {
   return (
-    <Aside p={5} hiddenBreakpoint="sm" width={{ lg: 300 }} zIndex={0.1}>
+    <Aside p={5} hiddenBreakpoint="sm" width={{ xs: 300 }} zIndex={0.1}>
       {helperUtils?.isLogin() ? (
         <Chat />
       ) : (

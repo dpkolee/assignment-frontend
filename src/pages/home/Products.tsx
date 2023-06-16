@@ -13,7 +13,8 @@ import { useMutation } from "@tanstack/react-query";
 import api from "../../utils/api-interceptor";
 import { AxiosError, AxiosResponse } from "axios";
 import { notifications } from "@mantine/notifications";
-import Reviews from "./Reviews";
+import ProductFeedback from "./ProductsFeedback";
+import { helperUtils } from "../../utils/helpers";
 
 type Props = {
   val: GameListResponseType;
@@ -66,7 +67,7 @@ const Products = ({ val }: Props) => {
     productPurchaseMutation.mutate({ product_id: productId });
   };
   return (
-    <Card withBorder radius="sm" p="sm" key={val.id} miw={250} maw={300}>
+    <Card withBorder radius="sm" p="sm" w={"100%"} maw={300}>
       <Card.Section>
         <Image src={val.image} alt={val.name} height={180} />
       </Card.Section>
@@ -95,12 +96,23 @@ const Products = ({ val }: Props) => {
           style={{ flex: 1 }}
           leftIcon={<Icon icon="icon-park-solid:buy" fontSize={18} />}
           onClick={() => {
-            handleProductPurchase(val.id);
+            if (helperUtils.isLogin()) {
+              handleProductPurchase(val.id);
+            } else {
+              notifications.show({
+                id: "buy-authentication-error",
+                color: "red",
+                icon: <Icon icon="fluent:dismiss-24-filled" />,
+                title: "ERROR",
+                message:
+                  "You have to be signed up and logged in to buy this product",
+              });
+            }
           }}
         >
           Buy
         </Button>
-        <Reviews val={val} title={"Product Detail & Reviews"} />
+        <ProductFeedback val={val} title={"Product Detail & Feedbacks"} />
       </Group>
     </Card>
   );

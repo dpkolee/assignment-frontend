@@ -9,7 +9,7 @@ import {
 } from "@mantine/core";
 import { GameListResponseType } from "./HomePage";
 import { Icon } from "@iconify/react/dist/iconify.js";
-import Reviews from "./Reviews";
+import GameFeedback from "./GameFeedback";
 
 type Props = {
   val: GameListResponseType;
@@ -17,7 +17,7 @@ type Props = {
 
 const Games = ({ val }: Props) => {
   return (
-    <Card withBorder radius="sm" p="sm" key={val.id} miw={250} maw={300}>
+    <Card withBorder radius="sm" p="sm" w={"100%"} maw={300}>
       <Card.Section>
         <Image src={val.image} alt={val.name} height={180} />
       </Card.Section>
@@ -47,7 +47,7 @@ const Games = ({ val }: Props) => {
         >
           Play
         </Button>
-        <Reviews val={val} title={"Game Detail & Reviews"} />
+        <GameFeedback val={val} title={"Game Detail & Feedbacks"} />
       </Group>
     </Card>
   );

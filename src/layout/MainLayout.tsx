@@ -6,6 +6,7 @@ import {
   Group,
   Header,
   Menu,
+  Stack,
   Text,
   ThemeIcon,
   Tooltip,
@@ -14,9 +15,22 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { helperUtils } from "../utils/helpers";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import AsideWrapper from "../pages/chat";
+import { useQuery } from "@tanstack/react-query";
+import api from "../utils/api-interceptor";
 
 const MainLayout = () => {
   const navigate = useNavigate();
+  const { data: userDetail } = useQuery(
+    ["user-detail"],
+    () => {
+      const response = api.get(`/auth/user/detail/`);
+      return response;
+    },
+    {
+      enabled: helperUtils?.isLogin(),
+    }
+  );
+
   return (
     <AppShell
       padding="md"
@@ -35,7 +49,7 @@ const MainLayout = () => {
                   Gamerfric
                 </Text>
               </Group>
-              <Group spacing={5}>
+              <Group spacing={10}>
                 <Tooltip label="Redeem points" withArrow>
                   <Badge
                     size="lg"
@@ -47,19 +61,36 @@ const MainLayout = () => {
                       </Group>
                     }
                   >
-                    100
+                    {userDetail?.data?.credits ?? 0}
                   </Badge>
                 </Tooltip>
                 <Menu shadow="md" width={200} withArrow>
                   <Menu.Target>
-                    <Avatar radius="xl" sx={{ cursor: "pointer" }} />
+                    <Avatar
+                      src={userDetail?.data?.profile_image}
+                      radius="xl"
+                      sx={{ cursor: "pointer" }}
+                    />
                   </Menu.Target>
                   <Menu.Dropdown>
                     <Menu.Label>Profile</Menu.Label>
-                    <Menu.Item
-                      icon={<Icon icon="fluent:slide-text-person-24-regular" />}
-                    >
-                      Profile
+                    <Menu.Item>
+                      <Group spacing={2}>
+                        <Avatar
+                          src={userDetail?.data?.profile_image}
+                          radius="xl"
+                          sx={{ cursor: "pointer" }}
+                        />
+                        <Stack spacing={0}>
+                          <Text size="sm" weight={500}>
+                            {userDetail?.data?.first_name ?? ""}{" "}
+                            {userDetail?.data?.last_name ?? ""}
+                          </Text>
+                          <Text color={"dimmed"} size="xs">
+                            @{userDetail?.data?.username ?? ""}
+                          </Text>
+                        </Stack>
+                      </Group>
                     </Menu.Item>
                     <Menu.Divider />
                     <Menu.Item
